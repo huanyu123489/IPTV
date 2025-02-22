@@ -11,7 +11,7 @@ from iptv.config import OUTPUT_DIR
 
 logger = logging.getLogger(__name__)
 
-IPTV_URL = "https://ghp.ci/https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u"
+IPTV_URL = "https://mirror.ghproxy.com/https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u"
 M3U_DIR = "m3u"
 TXT_DIR = "txt"
 SALT = os.getenv("SALT", "")
@@ -74,7 +74,7 @@ def txt_to_m3u(content):
                 channel_url = get_sign_url(channel_url)
 
             result += (
-                f'#EXTINF:-1 tvg-logo="https://ghp.ci/https://raw.githubusercontent.com/linitfor/epg/main/logo/{channel_name}.png" '
+                f'#EXTINF:-1 tvg-logo="https://mirror.ghproxy.com/https://raw.githubusercontent.com/linitfor/epg/main/logo/{channel_name}.png" '
                 f'group-title="{genre}",{channel_name}\n{channel_url}\n'
             )
 
@@ -90,7 +90,8 @@ def m3u_to_txt(m3u_content):
 
     for line in lines:
         if line.startswith("#EXTINF"):
-            group_name = line.split('group-title="')[1].split('"')[0]
+            if(len(line.split('group-title="')) > 1):
+              group_name = line.split('group-title="')[1].split('"')[0]
             channel_name = line.split(",")[-1]
         elif url_pattern.match(line):
             channel_link = line
@@ -115,19 +116,19 @@ def main():
 
     live_m3u_content = '#EXTM3U\n'
 
-    for channel in ['douyu', 'huya', 'yy', 'bilibili', 'afreecatv']:
+    for channel in ['douyu', 'huya', 'yy', 'bilibili', 'afreecatv', 'pandatv', 'twitch']:
         try:
             M3U_URL = f"{PROXY_URL}/{channel}/index.m3u"
-            if channel == 'afreecatv' and not PROXY_URL:
+            if channel in ['afreecatv', 'pandatv', 'twitch'] and not PROXY_URL:
                 continue
 
             if not PROXY_URL:
-                M3U_URL = f"https://ghp.ci/https://raw.githubusercontent.com/lalifeier/IPTV/main/m3u/{channel}.m3u"
+                M3U_URL = f"https://mirror.ghproxy.com/https://raw.githubusercontent.com/lalifeier/IPTV/main/m3u/{channel}.m3u"
 
             m3u_content = requests.get(M3U_URL).text
             channel_id = urlparse(M3U_URL).path.split('/')[1]
 
-            if channel not in ['afreecatv']:
+            if channel not in ['afreecatv', 'pandatv', 'twitch']:
               write_to_file(os.path.join(M3U_DIR, channel_id + '.m3u'), m3u_content)
               logger.info(f"Successfully downloaded and saved M3U file for channel {channel_id}")
 
@@ -189,7 +190,7 @@ def file_to_m3u(file_name):
 
 def write_m3u_to_file(file_path, content):
     header = (
-        '#EXTM3U x-tvg-url="https://ghp.ci/https://raw.githubusercontent.com/lalifeier/IPTV/main/e.xml"\n'
+        '#EXTM3U x-tvg-url="https://mirror.ghproxy.com/https://raw.githubusercontent.com/lalifeier/IPTV/main/e.xml"\n'
     )
     write_to_file(file_path, header + content.strip())
 
